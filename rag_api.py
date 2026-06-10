@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_community.llms import Ollama
+from hybrid_search import hybrid_search
 
 app = FastAPI(title="RAG Service")
 
@@ -21,30 +22,62 @@ llm = Ollama(model="llama3")
 class QueryRequest(BaseModel):
     question: str
 
-@app.get("/")
-def home():
-    return {"message": "RAG Service Running"}
-
 @app.post("/ask")
+
 def ask_question(request: QueryRequest):
 
-    docs = retriever.invoke(request.question)
+    result = hybrid_search(request.question)
 
-    context = "\n".join([doc.page_content for doc in docs])
+    if result["source"] == "database":
+
+        emp = result["data"]
+
+        context = f"""
+
+Employee Information
+
+ID: {emp[0]}
+
+Name: {emp[1]}
+
+Department: {emp[2]}
+
+Leave Balance: {emp[3]}
+
+Salary: {emp[4]}
+
+"""
+
+    else:
+
+        docs = retriever.invoke(request.question)
+
+        context = "\n".join(
+
+        [doc.page_content for doc in docs]
+
+        )
 
     prompt = f"""
-Answer using only the provided context.
+
+Answer using the information below.
 
 Context:
+
 {context}
 
 Question:
+
 {request.question}
+
 """
 
     answer = llm.invoke(prompt)
 
     return {
-        "question": request.question,
-        "answer": answer
+
+    "source": result["source"],
+
+    "answer": answer
+
     }
