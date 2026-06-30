@@ -1,33 +1,111 @@
 import sqlite3
 
+DB_PATH = "database/employee.db"
+
+
+def connect_database():
+    """
+    Create database connection.
+    """
+
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+
+    return conn
+
+
+def fetch_all_employees(conn):
+    """
+    Fetch all employees.
+    """
+
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM employees")
+
+    return cursor.fetchall()
+
+
+def find_employee(question, employees):
+    """
+    Search employee name inside user question.
+    """
+
+    question = question.lower()
+
+    for employee in employees:
+
+        if employee["name"].lower() in question:
+
+            return employee
+
+    return None
+
+
+def convert_to_dictionary(employee):
+    """
+    Convert sqlite row into dictionary.
+    """
+
+    if employee is None:
+        return None
+
+    return dict(employee)
+
+
 def search_database(question):
+    """
+    Search employee information from database.
 
-    conn=sqlite3.connect("database/employee.db")
+    Returns:
+        Dictionary
+        or
+        None
+    """
 
-    cursor=conn.cursor()
+    try:
 
-    question=question.lower()
+        conn = connect_database()
 
-    if "rahul" in question:
+        employees = fetch_all_employees(conn)
 
-        cursor.execute("SELECT * FROM employees WHERE name='Rahul'")
-
-    elif "amit" in question:
-
-        cursor.execute("SELECT * FROM employees WHERE name='Amit'")
-
-    elif "priya" in question:
-
-        cursor.execute("SELECT * FROM employees WHERE name='Priya'")
-
-    else:
+        employee = find_employee(question, employees)
 
         conn.close()
 
+        return convert_to_dictionary(employee)
+
+    except Exception as e:
+
+        print("Database Error :", e)
+
         return None
 
-    result=cursor.fetchone()
 
-    conn.close()
+# ------------------------------------
+# Testing
+# ------------------------------------
 
-    return result
+if __name__ == "__main__":
+
+    questions = [
+
+        "What is Rahul salary?",
+
+        "Show Amit department",
+
+        "What is Priya email?",
+
+        "Who is Rohit?",
+
+        "Employee Rahul"
+
+    ]
+
+    for question in questions:
+
+        print("=" * 60)
+
+        print(question)
+
+        print(search_database(question))
