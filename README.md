@@ -36,3 +36,12 @@ User Query
 ---
 
 ## 📂 Project Structure
+
+RAG_POC/
+├── app.py # Streamlit UI
+├── rag_api.py # FastAPI backend
+├── query_router.py # Query classification
+├── db_search.py # Database search logic
+├── hybrid_search.py # Hybrid retrieval
+├── ingest.py # Data ingestion pipeline
+├── requirements.txt # Dependencies
